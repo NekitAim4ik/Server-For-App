@@ -32,7 +32,7 @@ public class AuthService {
         this.expiration = jwtConfig.getExpiration();
     }
 
-    public String authenticate(AuthRequest request) {
+    public AuthResponse authenticate(AuthRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -40,12 +40,15 @@ public class AuthService {
             throw new RuntimeException("Invalid password");
         }
 
-        return Jwts.builder()
+        return new AuthResponse(
+                Jwts.builder()
                 .subject(user.getEmail())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(secretKey)
-                .compact();
+                .compact(),
+                user.getId(),
+                user.getEmail());
     }
 
     public AuthResponse register(RegisterRequest registerRequest) {
